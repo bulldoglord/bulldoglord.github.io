@@ -2,6 +2,8 @@
 <html>
   <head>
     <meta charset="utf-8" />
+    <link rel="stylesheet" href="styles.css" />
+
     <script
       src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js"
       crossorigin="anonymous"
@@ -15,28 +17,37 @@
       crossorigin="anonymous"
     ></script>
     <script
-      src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.3/face_mesh.js"
+      src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.3/hands.js"
       crossorigin="anonymous"
     ></script>
     <script defer src="script.js"></script>
-
-    <link rel="stylesheet" href="styles.css" />
   </head>
+
   <body>
-    <div>
-      <b>Upload image</b>
-      <input
-        type="file"
-        accept="image/gif, image/jpeg, image/png"
-        id="imageInput"
-      />
-    </div>
+  <div>
+    <b>Upload image</b>
+    <input
+      type="file"
+      accept="image/gif, image/jpeg, image/png"
+      id="imageInput"
+    >
+  </div>
+  <form>
+    <b>Select ring</b>
+    <select id="imageList">
+      <option disabled>Select image</option>
+    </select>
+  </form>
     <form>
-      <b>Select earring</b>
-      <select id="imageList">
-        <option disabled>Select image</option>
+      <b> Select finger to put ring on </b>
+      <select id="myList">
+        <option>ring finger</option>
+        <option>middle finger</option>
+        <option>index finger</option>
+        <option>pinky</option>
       </select>
     </form>
+
     <div class="container">
       <video class="input_video"></video>
       <canvas class="output_canvas"></canvas>
@@ -45,5 +56,6 @@
       <div class="spinner"></div>
       <div class="message">Loading</div>
     </div>
+    <!-- <script src="script.js"></script> -->
   </body>
 </html>
