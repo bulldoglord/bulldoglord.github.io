@@ -2,8 +2,6 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <link rel="stylesheet" href="styles.css" />
-
     <script
       src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js"
       crossorigin="anonymous"
@@ -17,13 +15,13 @@
       crossorigin="anonymous"
     ></script>
     <script
-      src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.3/hands.js"
+      src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.3/face_mesh.js"
       crossorigin="anonymous"
     ></script>
-
     <script defer src="script.js"></script>
-  </head>
 
+    <link rel="stylesheet" href="styles.css" />
+  </head>
   <body>
     <div>
       <b>Upload image</b>
@@ -34,7 +32,7 @@
       />
     </div>
     <form>
-      <b>Select item image</b>
+      <b>Select earring</b>
       <select id="imageList">
         <option disabled>Select image</option>
       </select>
@@ -42,6 +40,10 @@
     <div class="container">
       <video class="input_video"></video>
       <canvas class="output_canvas"></canvas>
+    </div>
+    <div class="loading">
+      <div class="spinner"></div>
+      <div class="message">Loading</div>
     </div>
   </body>
 </html>

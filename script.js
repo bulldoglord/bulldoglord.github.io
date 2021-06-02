@@ -7,12 +7,34 @@ videoElement.style.cssText =
 -webkit-transform: scale(-1, 1); -o-transform: scale(-1, 1); \
 transform: scale(-1, 1); filter: FlipH;";
 
-const jewelryImage = new Image();
+let jewelryImage = new Image();
 
 const imagesList = document.querySelector("#imageList");
+
 const imageInput = document.querySelector("#imageInput");
+
 let selectedImageId = "";
+
 const images = [];
+
+const canvasWidth = canvasElement.width;
+const canvasHeight = canvasElement.height;
+// const canvasData = canvasCtx.getImageData(0, 0, canvasWidth, canvasHeight);
+
+// jewelryImageLeft.src =
+//   "https://media-pipe.s3.amazonaws.com/earrings/a4fea16e-3ffb-462a-a71f-6d6e7b03e4e3-mask_left.png";
+
+// jewelryImageRight.src =
+//   "https://media-pipe.s3.amazonaws.com/earrings/a4fea16e-3ffb-462a-a71f-6d6e7b03e4e3-mask_right.png";
+
+// jewelryImageRight.src =
+//   "https://media-pipe.s3.amazonaws.com/earrings/a4fea16e-3ffb-462a-a71f-6d6e7b03e4e3-mask_left.png";
+
+// jewelryImageLeft.src =
+//   "https://media-pipe.s3.amazonaws.com/earrings/9034ef50-ee6b-4e82-a8cd-8a756fad99a2-mask_left.png";
+
+// jewelryImageRight.src =
+//   "https://media-pipe.s3.amazonaws.com/earrings/9034ef50-ee6b-4e82-a8cd-8a756fad99a2-mask_right.png";
 
 function updateSelectOptions(data) {
   imagesList.textContent = "";
@@ -26,6 +48,7 @@ function updateSelectOptions(data) {
 
     imagesList.append(option);
   });
+  updateSelectOptions;
 }
 
 function onFileSelected(event) {
@@ -46,6 +69,37 @@ function onFileSelected(event) {
 }
 
 imageInput.addEventListener("change", onFileSelected);
+
+//Aspect ratio
+let aspectRatio;
+jewelryImage.addEventListener("load", () => {
+  aspectRatio = jewelryImage.naturalHeight / jewelryImage.naturalWidth;
+});
+
+let exponentialSmoothing = 0.5;
+
+const jewelryWidthRatio = 0.1;
+
+const finalVideoRatio = 1;
+
+const elongationX = 0.7;
+const elongationY = 1;
+
+let i = 0;
+let totalCounts = 0;
+
+let poseLandmarks93SmoothedX = [];
+let poseLandmarks93SmoothedY = [];
+let poseLandmarks137SmoothedX = [];
+let poseLandmarks137SmoothedY = [];
+let poseLandmarks123SmoothedX = [];
+let poseLandmarks123SmoothedY = [];
+let poseLandmarks352SmoothedX = [];
+let poseLandmarks352SmoothedY = [];
+let poseLandmarks366SmoothedX = [];
+let poseLandmarks366SmoothedY = [];
+let poseLandmarks323SmoothedX = [];
+let poseLandmarks323SmoothedY = [];
 
 function drawPoint(x, y, label, color, size) {
   if (color == null) {
@@ -78,59 +132,74 @@ function drawPoint(x, y, label, color, size) {
   }
 }
 
-const palmJewelryWidthCoef = 0.7;
-const centerCoef = 0.5;
+function drawEarring(
+  outterLandMarkX,
+  middleLandmarkX,
+  innerLandMarkX,
+  outterLandMarkY,
+  middleLandmarkY,
+  innerLandMarkY,
+  jewelryImage,
+  side
+) {
+  let drawCondition;
+  if (side === "left") {
+    drawCondition = innerLandMarkX > outterLandMarkX;
+  } else if (side === "right") {
+    drawCondition = outterLandMarkX > innerLandMarkX;
+  }
 
-let exponentialSmoothing = 0.3; //depends on web cam framerate
+  if (drawCondition) {
+    let CenterX =
+      outterLandMarkX + (outterLandMarkX - middleLandmarkX) * elongationX;
 
-const tooCloseRatio = 0.4;
-const tooFarRatio = 0.05;
+    let dy;
 
-//Drawing conditions
+    if (middleLandmarkY - outterLandMarkY > 0) {
+      dy = outterLandMarkY - (middleLandmarkY - outterLandMarkY) * elongationY;
+    } else {
+      dy = outterLandMarkY + (outterLandMarkY - innerLandMarkY) * elongationY;
+    }
 
-let i = 0;
-let totalCounts = 0;
+    let dx = CenterX - JewelryWidth / 2;
 
-let landmarks0X = [];
-let landmarks5X = [];
-let landmarks17X = [];
-let landmarks0Y = [];
-let landmarks5Y = [];
-let landmarks17Y = [];
-let landmarks0Z = [];
-let landmarks5Z = [];
-let landmarks17Z = [];
+    console.log();
 
-let JewelryWidthCoef = 0.35;
+    canvasCtx.drawImage(
+      jewelryImage,
+      dx * canvasElement.width,
+      dy * canvasElement.height,
+      JewelryWidth * canvasElement.width,
+      JewelryHeight * canvasElement.width
+    );
+  }
+}
 
-let aspectRatio;
-jewelryImage.addEventListener("load", () => {
-  aspectRatio = jewelryImage.naturalHeight / jewelryImage.naturalWidth;
-});
+//Draw keypoints
+function drawKeyPoint(num, color = "orange", radius = 5) {
+        drawPoint(
+          landmarks[num].x * videoElement.videoWidth * finalVideoRatio,
+          landmarks[num].y * videoElement.videoHeight * finalVideoRatio,
+          String(num),
+          color,
+          radius
+        );
+      }
 
-let dropDownList = document.getElementById("myList");
-let HAND;
-
-function smoothArray(previousValue, currentValue) {
-  return (
+function smoothArray(smoothedArray, previousValue, currentValue) {
+  return smoothedArray.push(
     previousValue * exponentialSmoothing +
-    currentValue * (1 - exponentialSmoothing)
+      currentValue * (1 - exponentialSmoothing)
   );
 }
 
-function pointsDistance2D(x1, y1, x2, y2) {
-  return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
-}
-
-function pointsDistance3D(x1, y1, z1, x2, y2, z2) {
-  return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2 + (z2 - z1) ** 2);
-}
-
 function onResults(results) {
+  document.body.classList.add("loaded");
+
   canvasCtx.save();
 
-  canvasElement.width = videoElement.videoWidth;
-  canvasElement.height = videoElement.videoHeight;
+  canvasElement.width = videoElement.videoWidth * finalVideoRatio;
+  canvasElement.height = videoElement.videoHeight * finalVideoRatio;
 
   canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
   canvasCtx.drawImage(
@@ -141,7 +210,7 @@ function onResults(results) {
     canvasElement.height
   );
 
-  if (results.multiHandLandmarks && results.multiHandedness) {
+  if (results.multiFaceLandmarks) {
     const option = imagesList.options[imagesList.selectedIndex];
     const imageId = option && option.dataset.id;
     selectedImageId = imageId;
@@ -149,185 +218,164 @@ function onResults(results) {
 
     jewelryImage.src = image.src || "";
 
-    let outputPalm = results.multiHandLandmarks[0];
+    for (const landmarks of results?.multiFaceLandmarks) {
+      //drawConnectors(canvasCtx, landmarks, FACEMESH_TESSELATION, {
+      //  color: "#C0C0C070",
+      //  lineWidth: 1,
+      //});
+      //   drawConnectors(canvasCtx, landmarks, FACEMESH_RIGHT_EYE, {
+      //     color: "#FF3030",
+      //   });
+      //   drawConnectors(canvasCtx, landmarks, FACEMESH_RIGHT_EYEBROW, {
+      //     color: "#FF3030",
+      //   });
+      //   drawConnectors(canvasCtx, landmarks, FACEMESH_LEFT_EYE, {
+      //     color: "#30FF30",
+      //   });
+      //   drawConnectors(canvasCtx, landmarks, FACEMESH_LEFT_EYEBROW, {
+      //     color: "#30FF30",
+      //   });
+      //   drawConnectors(canvasCtx, landmarks, FACEMESH_FACE_OVAL, {
+      //     color: "#E0E0E0",
+      //   });
+      //   drawConnectors(canvasCtx, landmarks, FACEMESH_LIPS, {
+      //     color: "#E0E0E0",
+      //   });
 
-    console.log("results.multiHandedness", results.multiHandedness[0].label);
+      if (i == 0) {
+        poseLandmarks93SmoothedX.push(landmarks[93].x);
+        poseLandmarks93SmoothedY.push(landmarks[93].y);
+        poseLandmarks137SmoothedX.push(landmarks[137].x);
+        poseLandmarks137SmoothedY.push(landmarks[137].y);
+        poseLandmarks123SmoothedX.push(landmarks[123].x);
+        poseLandmarks123SmoothedY.push(landmarks[123].y);
+        poseLandmarks352SmoothedX.push(landmarks[352].x);
+        poseLandmarks352SmoothedY.push(landmarks[352].y);
+        poseLandmarks366SmoothedX.push(landmarks[366].x);
+        poseLandmarks366SmoothedY.push(landmarks[366].y);
+        poseLandmarks323SmoothedX.push(landmarks[323].x);
+        poseLandmarks323SmoothedY.push(landmarks[323].y);
+      } else {
+        smoothArray(
+          poseLandmarks93SmoothedX,
+          poseLandmarks93SmoothedX[i - 1],
+          landmarks[93].x
+        );
 
-    // Draw connectors
-    // for (let index = 0; index < results.multiHandLandmarks.length; index++) {
-    //   const classification = results.multiHandedness[index];
-    //   const isRightHand = classification.label === "Right";
-    //   const landmarks = results.multiHandLandmarks[index];
-    //   drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {
-    //     color: isRightHand ? "#00FF00" : "#FF0000",
-    //   }),
-    //     drawLandmarks(canvasCtx, landmarks, {
-    //       color: isRightHand ? "#00FF00" : "#FF0000",
-    //       fillColor: isRightHand ? "#FF0000" : "#00FF00",
-    //       radius: (x) => {
-    //         return lerp(x.from.z, -0.15, 0.1, 10, 1);
-    //       },
-    //     });
-    // }
+        smoothArray(
+          poseLandmarks93SmoothedY,
+          poseLandmarks93SmoothedY[i - 1],
+          landmarks[93].y
+        );
 
-    // drawPoint(centerX, centerY, `CENTER`, "orange", 5);
+        smoothArray(
+          poseLandmarks137SmoothedX,
+          poseLandmarks137SmoothedX[i - 1],
+          landmarks[137].x
+        );
 
-    //SMOOTHED COORDINATES
-    smoothed0X = smoothArray(landmarks0X[i - 1], outputPalm[0].x);
-    smoothed5X = smoothArray(landmarks5X[i - 1], outputPalm[5].x);
-    smoothed17X = smoothArray(landmarks17X[i - 1], outputPalm[17].x);
-    smoothed0Y = smoothArray(landmarks0Y[i - 1], outputPalm[0].y);
-    smoothed5Y = smoothArray(landmarks5Y[i - 1], outputPalm[5].y);
-    smoothed17Y = smoothArray(landmarks17Y[i - 1], outputPalm[17].y);
-    smoothed0Z = smoothArray(landmarks0Z[i - 1], outputPalm[0].z);
-    smoothed5Z = smoothArray(landmarks5Z[i - 1], outputPalm[5].z);
-    smoothed17Z = smoothArray(landmarks17Z[i - 1], outputPalm[17].z);
+        smoothArray(
+          poseLandmarks137SmoothedY,
+          poseLandmarks137SmoothedY[i - 1],
+          landmarks[137].y
+        );
 
-    //DRAWING CONDITIONS
-    let distance517 = pointsDistance2D(
-      smoothed5X,
-      smoothed5Y,
-      smoothed17X,
-      smoothed17Y
-    );
+        smoothArray(
+          poseLandmarks123SmoothedX,
+          poseLandmarks123SmoothedX[i - 1],
+          landmarks[123].x
+        );
 
-    // let distanceWristElbow = pointsDistance2D(
-    //   smoothed0X,
-    //   smoothed0Y,
-    //   smoothedElbowX,
-    //   smoothedElbowY
-    // );
+        smoothArray(
+          poseLandmarks123SmoothedY,
+          poseLandmarks123SmoothedY[i - 1],
+          landmarks[123].y
+        );
 
-    if (Math.abs(smoothed5Z - smoothed17Z) > distance517) {
-      console.log("Palm should be perpendicular to the camera");
-      return;
-    }
+        smoothArray(
+          poseLandmarks352SmoothedX,
+          poseLandmarks352SmoothedX[i - 1],
+          landmarks[352].x
+        );
 
-    if (
-      Math.abs((smoothed5Z + smoothed17Z) / 2 - smoothed0Z) >
-      distance517 * 1.5
-    ) {
-      console.log("Palm should be at the same distance from camera as wrist");
-      return;
-    }
+        smoothArray(
+          poseLandmarks352SmoothedY,
+          poseLandmarks352SmoothedY[i - 1],
+          landmarks[352].y
+        );
 
-    if (results.multiHandedness[0].label === "Left") {
-      if (smoothed17X - smoothed5X < -distance517 * 0.5) {
-        console.log("Outside of the palm should be facing the camera");
-        return;
+        smoothArray(
+          poseLandmarks366SmoothedX,
+          poseLandmarks366SmoothedX[i - 1],
+          landmarks[366].x
+        );
+
+        smoothArray(
+          poseLandmarks366SmoothedY,
+          poseLandmarks366SmoothedY[i - 1],
+          landmarks[366].y
+        );
+
+        smoothArray(
+          poseLandmarks323SmoothedX,
+          poseLandmarks323SmoothedX[i - 1],
+          landmarks[323].x
+        );
+
+        smoothArray(
+          poseLandmarks323SmoothedY,
+          poseLandmarks323SmoothedY[i - 1],
+          landmarks[323].y
+        );
       }
+
+      JewelryWidth =
+        (Math.max(
+          poseLandmarks352SmoothedX[i],
+          poseLandmarks366SmoothedX[i],
+          poseLandmarks323SmoothedX[i]
+        ) -
+          Math.min(
+            poseLandmarks123SmoothedX[i],
+            poseLandmarks137SmoothedX[i],
+            poseLandmarks93SmoothedX[i]
+          )) *
+        jewelryWidthRatio;
+      JewelryHeight = JewelryWidth * aspectRatio;
+
+      drawEarring(
+        poseLandmarks93SmoothedX[i],
+        poseLandmarks137SmoothedX[i],
+        poseLandmarks123SmoothedX[i],
+        poseLandmarks93SmoothedY[i],
+        poseLandmarks137SmoothedY[i],
+        poseLandmarks123SmoothedY[i],
+        jewelryImage,
+        "left"
+      );
+
+      drawEarring(
+        poseLandmarks323SmoothedX[i],
+        poseLandmarks366SmoothedX[i],
+        poseLandmarks352SmoothedX[i],
+        poseLandmarks323SmoothedY[i],
+        poseLandmarks366SmoothedY[i],
+        poseLandmarks352SmoothedY[i],
+        jewelryImage,
+        "right"
+      );
+
+      //drawKeyPoint(93);
+      //drawKeyPoint(137);
+      //drawKeyPoint(323);
+      //drawKeyPoint(366);
+      //drawKeyPoint(123);
+      //drawKeyPoint(352);
     }
-
-    if (results.multiHandedness[0].label === "Right") {
-      if (smoothed5X - smoothed17X < -distance517 * 0.5) {
-        console.log("Outside of the palm should be facing the camera");
-        return;
-      }
-    }
-
-    // if (Math.abs(smoothed0Z - smoothedElbowZ) > distanceWristElbow * 0.25) {
-    //   console.log("Wrist should be at the same distance from camera as elbow");
-    //   return;
-    // }
-
-    // let distance517 = pointsDistance3D(
-    //   smoothed5X,
-    //   smoothed5Y,
-    //   smoothed5Z,
-    //   smoothed17X,
-    //   smoothed17Y,
-    //   smoothed17Z
-    // );
-
-    //PUSHING TO ARRAYS
-    if (i == 0) {
-      landmarks0X.push(outputPalm[0].x);
-      landmarks5X.push(outputPalm[5].x);
-      landmarks17X.push(outputPalm[17].x);
-      landmarks0Y.push(outputPalm[0].y);
-      landmarks5Y.push(outputPalm[5].y);
-      landmarks17Y.push(outputPalm[17].y);
-      landmarks0Z.push(outputPalm[0].z);
-      landmarks5Z.push(outputPalm[5].z);
-      landmarks17Z.push(outputPalm[17].z);
-    } else {
-      landmarks0X.push(smoothed0X);
-      landmarks5X.push(smoothed5X);
-      landmarks17X.push(smoothed17X);
-      landmarks0Y.push(smoothed0Y);
-      landmarks5Y.push(smoothed5Y);
-      landmarks17Y.push(smoothed17Y);
-      landmarks0Z.push(smoothed0Z);
-      landmarks5Z.push(smoothed5Z);
-      landmarks17Z.push(smoothed17Z);
-    }
-
-    let centerX517 = (smoothed5X + smoothed17X) / 2;
-    let centerY517 = (smoothed5Y + smoothed17Y) / 2;
-
-    let angle =
-      Math.atan2(centerY517 - smoothed0Y, centerX517 - smoothed0X) -
-      Math.PI / 2;
-
-    let distance5173D = pointsDistance3D(
-      smoothed5X,
-      smoothed5Y,
-      smoothed5Z,
-      smoothed17X,
-      smoothed17Y,
-      smoothed17Z
-    );
-
-    let distance503D = pointsDistance3D(
-      smoothed5X,
-      smoothed5Y,
-      smoothed5Z,
-      smoothed0X,
-      smoothed0Y,
-      smoothed0Z
-    );
-
-    let distance1703D = pointsDistance3D(
-      smoothed17X,
-      smoothed17Y,
-      smoothed17Z,
-      smoothed0X,
-      smoothed0Y,
-      smoothed0Z
-    );
-
-    let triangularDistance = (distance5173D + distance503D + distance1703D) / 3;
-
-    let width = triangularDistance * canvasElement.width * palmJewelryWidthCoef;
-
-    let height = aspectRatio * width;
-
-    let centerX =
-      (smoothed0X - (centerX517 - smoothed0X) * centerCoef) *
-      canvasElement.width;
-
-    let centerY =
-      (smoothed0Y - (centerY517 - smoothed0Y) * centerCoef) *
-      canvasElement.height;
-
-    canvasCtx.translate(centerX, centerY);
-
-    canvasCtx.rotate(angle);
-
-    canvasCtx.translate(-centerX, -centerY);
-
-    canvasCtx.drawImage(
-      jewelryImage,
-      centerX - width / 2,
-      centerY - height / 2,
-      width,
-      height
-    );
-
-    canvasCtx.restore();
     i++;
     console.log(i);
   }
+  canvasCtx.restore();
 
   totalCounts++;
   console.log(totalCounts);
@@ -336,30 +384,29 @@ function onResults(results) {
   let FPS = (totalCounts / (currentTime - startTime)) * 1000; //time in miliseconds
   console.log("FPS", FPS);
 
-  exponentialSmoothing = Math.min(0.02 * FPS + 0.32, 0.99);
-
-  // exponentialSmoothing = 0.6;
-
+  exponentialSmoothing = 0.01 * FPS + 0.16;
   console.log("exponentialSmoothing", exponentialSmoothing);
 }
 
-const hands = new Hands({
+const faceMesh = new FaceMesh({
   locateFile: (file) => {
-    return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.3/${file}`;
+    return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.3/${file}`;
   },
 });
-hands.setOptions({
+faceMesh.setOptions({
   selfieMode: true,
-  maxNumHands: 1,
-  minDetectionConfidence: 0.8,
-  minTrackingConfidence: 0.8,
+  maxNumFaces: 1,
+  minDetectionConfidence: 0.5,
+  minTrackingConfidence: 0.5,
 });
-hands.onResults(onResults);
+faceMesh.onResults(onResults);
 
 const camera = new Camera(videoElement, {
   onFrame: async () => {
-    await hands.send({ image: videoElement });
+    await faceMesh.send({ image: videoElement });
   },
+  // width: canvasWidth,
+  // height: canvasHeight,
 });
 
 startTime = Date.now();
