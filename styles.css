@@ -54,31 +54,26 @@ body {
 }
 
 .loading {
-  display: flex;
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  align-items: center;
-  backface-visibility: hidden;
-  justify-content: center;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   opacity: 1;
   transition: opacity 1s;
+}
 
-  .message {
-    font-size: x-large;
-  }
+.message {
+  font-size: x-large;
+}
 
-  .spinner {
-    position: absolute;
-    width: 120px;
-    height: 120px;
-    animation: spin 1s linear infinite;
-    border: 32px solid #bebebe;
-    border-top: 32px solid #3498db;
-    border-radius: 50%;
-  }
+.spinner {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  animation: spin 1s linear infinite;
+  border: 32px solid #bebebe;
+  border-top: 32px solid #3498db;
+  border-radius: 50%;
 }
 
 .loaded .loading {

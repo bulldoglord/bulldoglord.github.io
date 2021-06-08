@@ -4,40 +4,18 @@
     <meta charset="utf-8" />
     <link rel="stylesheet" href="styles.css" />
 
-    <script
-      src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js"
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils@0.3/control_utils.js"
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3/drawing_utils.js"
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.3/hands.js"
-      crossorigin="anonymous"
-    ></script>
-    <script defer src="script.js"></script>
+    <!-- Require the peer dependencies of handpose. -->
+    <script src="https://unpkg.com/@tensorflow/tfjs-core@2.1.0/dist/tf-core.js"></script>
+    <script src="https://unpkg.com/@tensorflow/tfjs-converter@2.1.0/dist/tf-converter.js"></script>
+    <!-- You must explicitly require a TF.js backend if you're not using the tfs union bundle. -->
+    <script src="https://unpkg.com/@tensorflow/tfjs-backend-webgl@2.1.0/dist/tf-backend-webgl.js"></script>
+    <script src="https://unpkg.com/@tensorflow/tfjs-backend-wasm@2.1.0/dist/tf-backend-wasm.js"></script>
+    <script src="https://unpkg.com/@tensorflow-models/handpose@0.0.6/dist/handpose.js"></script>
   </head>
 
   <body>
-  <div>
-    <b>Upload image</b>
-    <input
-      type="file"
-      accept="image/gif, image/jpeg, image/png"
-      id="imageInput"
-    >
-  </div>
-  <form>
-    <b>Select ring</b>
-    <select id="imageList">
-      <option disabled>Select image</option>
-    </select>
-  </form>
+    <div id="info"></div>
+    <div id="predictions"></div>
     <form>
       <b> Select finger to put ring on </b>
       <select id="myList">
@@ -47,15 +25,21 @@
         <option>pinky</option>
       </select>
     </form>
-
-    <div class="container">
-      <video class="input_video"></video>
-      <canvas class="output_canvas"></canvas>
+    <div id="canvas-wrapper">
+      <canvas id="output" style=""></canvas>
+      <video id="video" playsinline style="
+      -webkit-transform: scaleX(-1);
+      transform: scaleX(-1);
+      visibility: hidden;
+      width: auto;
+      height: auto;
+      position: absolute;
+      ">
+      </video>
     </div>
-    <div class="loading">
-      <div class="spinner"></div>
-      <div class="message">Loading</div>
-    </div>
-    <!-- <script src="script.js"></script> -->
+    <div id="scatter-gl-container"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.6/dat.gui.min.js"></script>
+    <script src="./index.js"></script>
   </body>
+
 </html>
