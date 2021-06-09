@@ -14,8 +14,20 @@
   </head>
 
   <body>
-    <div id="info"></div>
-    <div id="predictions"></div>
+    <div>
+      <b>Upload image</b>
+      <input
+        type="file"
+        accept="image/gif, image/jpeg, image/png"
+        id="imageInput"
+      />
+    </div>
+    <form>
+      <b>Select ring</b>
+      <select id="imageList">
+        <option disabled>Select image</option>
+      </select>
+    </form>
     <form>
       <b> Select finger to put ring on </b>
       <select id="myList">
@@ -37,7 +49,6 @@
       ">
       </video>
     </div>
-    <div id="scatter-gl-container"></div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.6/dat.gui.min.js"></script>
     <script src="./index.js"></script>
   </body>
