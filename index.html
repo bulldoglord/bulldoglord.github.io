@@ -2,15 +2,39 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <link rel="stylesheet" href="styles.css" />
-
     <!-- Require the peer dependencies of handpose. -->
-    <script src="https://unpkg.com/@tensorflow/tfjs-core@2.1.0/dist/tf-core.js"></script>
-    <script src="https://unpkg.com/@tensorflow/tfjs-converter@2.1.0/dist/tf-converter.js"></script>
+    <!-- <script src="https://unpkg.com/@tensorflow/tfjs-core@2.4.0/dist/tf-core.js"></script> -->
+    <!-- <script src="https://unpkg.com/@tensorflow/tfjs-converter@2.4.0/dist/tf-converter.js"></script> -->
     <!-- You must explicitly require a TF.js backend if you're not using the tfs union bundle. -->
-    <script src="https://unpkg.com/@tensorflow/tfjs-backend-webgl@2.1.0/dist/tf-backend-webgl.js"></script>
-    <script src="https://unpkg.com/@tensorflow/tfjs-backend-wasm@2.1.0/dist/tf-backend-wasm.js"></script>
-    <script src="https://unpkg.com/@tensorflow-models/handpose@0.0.6/dist/handpose.js"></script>
+    <!-- <script src="https://unpkg.com/@tensorflow/tfjs-backend-webgl@2.1.0/dist/tf-backend-webgl.js"></script> -->
+    <!-- <script src="https://unpkg.com/@tensorflow/tfjs-backend-wasm@2.1.0/dist/tf-backend-wasm.js"></script> -->
+    <!-- <script src="https://unpkg.com/@tensorflow-models/face-landmarks-detection@0.0.3/dist/face-landmarks-detection.js"></script> -->
+
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script> -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script> -->
+
+    <!-- Require the peer dependencies of pose-detection. -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script> -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script> -->
+
+    <!-- You must explicitly require a TF.js backend if you're not using the TF.js union bundle. -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script> -->
+
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script> -->
+
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script> -->
+
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script> -->
+
+    <!-- Require the peer dependencies of pose-detection. -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
+
+    <!-- You must explicitly require a TF.js backend if you're not using the TF.js union bundle. -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+    <!-- Alternatively you can use the WASM backend: <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm/dist/tf-backend-wasm.js"></script> -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
   </head>
 
   <body>
@@ -23,26 +47,28 @@
       />
     </div>
     <form>
-      <b>Select ring</b>
+      <b>Select necklace</b>
       <select id="imageList">
         <option disabled>Select image</option>
       </select>
     </form>
-  
+
     <div id="canvas-wrapper">
-      <canvas id="output" style=""></canvas>
-      <video id="video" playsinline style="
-      -webkit-transform: scaleX(-1);
-      transform: scaleX(-1);
-      visibility: hidden;
-      width: auto;
-      height: auto;
-      position: absolute;
-      ">
-      </video>
+      <canvas id="output"></canvas>
+      <video
+        id="video"
+        playsinline
+        style="
+          -webkit-transform: scaleX(-1);
+          transform: scaleX(-1);
+          visibility: hidden;
+          width: auto;
+          height: auto;
+          position: absolute;
+        "
+      ></video>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.6/dat.gui.min.js"></script>
     <script src="./index.js"></script>
   </body>
-
 </html>
