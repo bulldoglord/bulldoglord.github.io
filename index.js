@@ -1,11 +1,10 @@
+const VIDEO_WIDTH = 640;
+const VIDEO_HEIGHT = 500;
 
- const VIDEO_WIDTH = 640;
- const VIDEO_HEIGHT = 500;
- 
- const canvasElement = document.getElementById('output');
- const canvasCtx = canvasElement.getContext("2d");
- 
- canvasElement.style.cssText =
+const canvasElement = document.getElementById("output");
+const canvasCtx = canvasElement.getContext("2d");
+
+canvasElement.style.cssText =
   "-moz-transform: scale(-1, 1); \
 -webkit-transform: scale(-1, 1); -o-transform: scale(-1, 1); \
 transform: scale(-1, 1); filter: FlipH;";
@@ -16,148 +15,146 @@ function isMobile() {
   return isAndroid || isiOS;
 }
 
- const mobile = isMobile();
- 
- const jewelryImage = new Image();
- const imagesList = document.querySelector("#imageList");
- const imageInput = document.querySelector("#imageInput");
- let selectedImageId = "";
- const images = [];
- 
- function updateSelectOptions(data) {
-   imagesList.textContent = "";
- 
-   data.forEach((image) => {
-     const option = document.createElement("option");
-     option.setAttribute("data-id", image.id);
-     option.textContent = image.name;
- 
-     if (image.id === selectedImageId) option.selected = true;
- 
-     imagesList.append(option);
-   });
- }
- 
- function onFileSelected(event) {
-   const file = event.target.files[0];
-   const reader = new FileReader();
- 
-   reader.onloadend = function (e) {
-     const {
-       target: { result },
-     } = e;
-     const { name } = file;
- 
-     images.push({ id: `${images.length}-${name}`, name, src: result });
- 
-     updateSelectOptions(images);
-   };
-   reader.readAsDataURL(file);
- }
- 
- imageInput.addEventListener("change", onFileSelected);
+const mobile = isMobile();
 
- let exponentialSmoothing = 0.3;
- const tooCloseRatio = 0.4;
- const tooFarRatio = 0.05;
- 
- //Drawing conditions
- const ratio517 = 0.15;
- const ratioMCPPIPZ = 0.15;
- 
- let i = 0;
- 
- let dropDownList = document.getElementById("myList");
- let FINGER;
+const jewelryImage = new Image();
+const imagesList = document.querySelector("#imageList");
+const imageInput = document.querySelector("#imageInput");
+let selectedImageId = "";
+const images = [];
 
- let fingerMCPX = [];
- let fingerPIPX = [];
- let fingerMCPY = [];
- let fingerPIPY = [];
- let fingerMCPZ = [];
- let fingerPIPZ = [];
- 
- let landmarks5Z = [];
- let landmarks17Z = [];
- 
- let ringFingerCenterCoef = 0.5;
- let ringFingerJewelryWidthCoef = 0.42;
- 
- let aspectRatio;
- jewelryImage.addEventListener("load", () => {
-   aspectRatio = jewelryImage.naturalHeight / jewelryImage.naturalWidth;
- });
+function updateSelectOptions(data) {
+  imagesList.textContent = "";
 
- function smoothArray(previousValue, currentValue) {
+  data.forEach((image) => {
+    const option = document.createElement("option");
+    option.setAttribute("data-id", image.id);
+    option.textContent = image.name;
+
+    if (image.id === selectedImageId) option.selected = true;
+
+    imagesList.append(option);
+  });
+}
+
+function onFileSelected(event) {
+  const file = event.target.files[0];
+  const reader = new FileReader();
+
+  reader.onloadend = function (e) {
+    const {
+      target: { result },
+    } = e;
+    const { name } = file;
+
+    images.push({ id: `${images.length}-${name}`, name, src: result });
+
+    updateSelectOptions(images);
+  };
+  reader.readAsDataURL(file);
+}
+
+imageInput.addEventListener("change", onFileSelected);
+
+let exponentialSmoothing = 0.3;
+const tooCloseRatio = 0.4;
+const tooFarRatio = 0.05;
+
+//Drawing conditions
+const ratio517 = 0.15;
+const ratioMCPPIPZ = 0.15;
+
+let i = 0;
+
+let dropDownList = document.getElementById("myList");
+let FINGER;
+
+let fingerMCPX = [];
+let fingerPIPX = [];
+let fingerMCPY = [];
+let fingerPIPY = [];
+let fingerMCPZ = [];
+let fingerPIPZ = [];
+
+let landmarks5Z = [];
+let landmarks17Z = [];
+
+let ringFingerCenterCoef = 0.5;
+let ringFingerJewelryWidthCoef = 0.42;
+
+let aspectRatio;
+jewelryImage.addEventListener("load", () => {
+  aspectRatio = jewelryImage.naturalHeight / jewelryImage.naturalWidth;
+});
+
+function smoothArray(previousValue, currentValue) {
   return (
     previousValue * exponentialSmoothing +
     currentValue * (1 - exponentialSmoothing)
   );
- }
+}
 
 function pointsDistance(x1, y1, x2, y2) {
   return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
 }
 
+let model;
 
- let model;
- 
- async function setupCamera() {
-   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-     throw new Error(
-         'Browser API navigator.mediaDevices.getUserMedia not available');
-   }
- 
-   const video = document.getElementById('video');
-   const stream = await navigator.mediaDevices.getUserMedia({
-     'audio': false,
-     'video': {
-       facingMode: 'user',
-       // Only setting the video to a specified size in order to accommodate a
-       // point cloud, so on mobile devices accept the default size.
-       width: undefined,
-       height: undefined
-     },
-   });
-   video.srcObject = stream;
- 
-   return new Promise((resolve) => {
-     video.onloadedmetadata = () => {
-       resolve(video);
-     };
-   });
- }
- 
- async function loadVideo() {
-   const video = await setupCamera();
-   video.play();
-   return video;
- }
+async function setupCamera() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    throw new Error(
+      "Browser API navigator.mediaDevices.getUserMedia not available"
+    );
+  }
 
+  const video = document.getElementById("video");
+  const stream = await navigator.mediaDevices.getUserMedia({
+    audio: false,
+    video: {
+      facingMode: "user",
+      // Only setting the video to a specified size in order to accommodate a
+      // point cloud, so on mobile devices accept the default size.
+      width: VIDEO_WIDTH,
+      height: VIDEO_HEIGHT,
+    },
+  });
+  video.srcObject = stream;
 
- async function main() {
-   model = await handpose.load();
-   let video;
- 
-   try {
-     video = await loadVideo();
-   } catch (e) {
-     console.log(e.message);
-     throw e;
-   }
-   
-   landmarksRealTime(video);
- }
- 
- const landmarksRealTime = async (video) => {
-   async function frameLandmarks() {
-    
+  return new Promise((resolve) => {
+    video.onloadedmetadata = () => {
+      resolve(video);
+    };
+  });
+}
+
+async function loadVideo() {
+  const video = await setupCamera();
+  video.play();
+  return video;
+}
+
+async function main() {
+  model = await handpose.load();
+  let video;
+
+  try {
+    video = await loadVideo();
+  } catch (e) {
+    console.log(e.message);
+    throw e;
+  }
+
+  landmarksRealTime(video);
+}
+
+const landmarksRealTime = async (video) => {
+  async function frameLandmarks() {
     canvasCtx.save();
     canvasElement.width = video.videoWidth;
     canvasElement.height = video.videoHeight;
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
     canvasCtx.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
-    
+
     const predictions = await model.estimateHands(video);
 
     if (predictions.length > 0) {
@@ -191,28 +188,46 @@ function pointsDistance(x1, y1, x2, y2) {
           pipLandmark = 6;
           break;
       }
-  
-      let smoothedMCPX = smoothArray(fingerMCPX[i - 1], landmarks[mcpLandmark][0]);
-      let smoothedPIPX = smoothArray(fingerPIPX[i - 1], landmarks[pipLandmark][0]);
-      let smoothedMCPY = smoothArray(fingerMCPY[i - 1], landmarks[mcpLandmark][1]);
-      let smoothedPIPY = smoothArray(fingerPIPY[i - 1], landmarks[pipLandmark][1]);
-      let smoothedMCPZ = smoothArray(fingerMCPZ[i - 1], landmarks[mcpLandmark][2]);
-      let smoothedPIPZ = smoothArray(fingerPIPZ[i - 1], landmarks[pipLandmark][2]);
+
+      let smoothedMCPX = smoothArray(
+        fingerMCPX[i - 1],
+        landmarks[mcpLandmark][0]
+      );
+      let smoothedPIPX = smoothArray(
+        fingerPIPX[i - 1],
+        landmarks[pipLandmark][0]
+      );
+      let smoothedMCPY = smoothArray(
+        fingerMCPY[i - 1],
+        landmarks[mcpLandmark][1]
+      );
+      let smoothedPIPY = smoothArray(
+        fingerPIPY[i - 1],
+        landmarks[pipLandmark][1]
+      );
+      let smoothedMCPZ = smoothArray(
+        fingerMCPZ[i - 1],
+        landmarks[mcpLandmark][2]
+      );
+      let smoothedPIPZ = smoothArray(
+        fingerPIPZ[i - 1],
+        landmarks[pipLandmark][2]
+      );
       let smoothed5Z;
       let smoothed17Z;
-      
+
       if (FINGER === "indexFinger") {
         smoothed5Z = smoothedMCPZ;
       } else {
         smoothed5Z = smoothArray(landmarks5Z[i - 1], landmarks[5][2]);
       }
-  
+
       if (FINGER === "pinky") {
         smoothed17Z = smoothedMCPZ;
       } else {
         smoothed17Z = smoothArray(landmarks17Z[i - 1], landmarks[17][2]);
       }
-  
+
       if (Math.abs(smoothed5Z - smoothed17Z) > ratio517) {
         console.log("Palm should be perpendicular to the camera");
       }
@@ -230,8 +245,8 @@ function pointsDistance(x1, y1, x2, y2) {
           return;
         }
       }*/
-      
-       let distance517 = pointsDistance(
+
+      let distance517 = pointsDistance(
         landmarks[5][0],
         landmarks[5][1],
         landmarks[17][0],
@@ -249,7 +264,7 @@ function pointsDistance(x1, y1, x2, y2) {
       if (Math.abs(smoothedMCPZ - smoothedPIPZ) > ratioMCPPIPZ) {
         console.log("please straighten your fingers");
       }
-      
+
       if (i === 0) {
         fingerMCPX.push(landmarks[mcpLandmark][0]);
         fingerPIPX.push(landmarks[pipLandmark][0]);
@@ -269,7 +284,7 @@ function pointsDistance(x1, y1, x2, y2) {
         landmarks5Z.push(smoothed5Z);
         landmarks17Z.push(smoothed17Z);
       }
-  
+
       let angle = -Math.atan(
         (smoothedPIPX - smoothedMCPX) / (smoothedPIPY - smoothedMCPY)
       );
@@ -283,28 +298,37 @@ function pointsDistance(x1, y1, x2, y2) {
 
       let width = mcpipDistance * ringFingerJewelryWidthCoef;
       let height = aspectRatio * width;
-      let centerX = (smoothedMCPX + (smoothedPIPX - smoothedMCPX) * ringFingerCenterCoef);
-      let centerY = (smoothedMCPY + (smoothedPIPY - smoothedMCPY) * ringFingerCenterCoef);
+      let centerX =
+        smoothedMCPX + (smoothedPIPX - smoothedMCPX) * ringFingerCenterCoef;
+      let centerY =
+        smoothedMCPY + (smoothedPIPY - smoothedMCPY) * ringFingerCenterCoef;
 
       canvasCtx.translate(centerX, centerY);
       canvasCtx.rotate(angle);
       canvasCtx.translate(-centerX, -centerY);
-      canvasCtx.drawImage(jewelryImage,centerX - width / 2, centerY - height / 2, width, height);
-      
+      canvasCtx.drawImage(
+        jewelryImage,
+        centerX - width / 2,
+        centerY - height / 2,
+        width,
+        height
+      );
+
       //console.log('Width: ', width);
       //console.log('Height: ', height);
 
       canvasCtx.restore();
       i++;
-
     }
-     rafID = requestAnimationFrame(frameLandmarks);
-   };
- 
-   frameLandmarks();
- };
- 
- navigator.getUserMedia = navigator.getUserMedia ||
-     navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
- 
- main();
+    rafID = requestAnimationFrame(frameLandmarks);
+  }
+
+  frameLandmarks();
+};
+
+navigator.getUserMedia =
+  navigator.getUserMedia ||
+  navigator.webkitGetUserMedia ||
+  navigator.mozGetUserMedia;
+
+main();
